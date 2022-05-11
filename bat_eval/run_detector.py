@@ -36,7 +36,7 @@ def read_audio(file_name, do_time_expansion, chunk_size, win_size):
         print('  Warning: stereo file. Just taking left channel.')
         audio = audio[:, 0]
     file_dur = audio.shape[0] / float(samp_rate_orig)
-    print('  dur', round(file_dur,3), '(secs) , fs', samp_rate_orig)
+    #print('  dur', round(file_dur,3), '(secs) , fs', samp_rate_orig)
 
     # original model is trained on time expanded data
     samp_rate = samp_rate_orig
@@ -52,7 +52,7 @@ def read_audio(file_name, do_time_expansion, chunk_size, win_size):
     return False, audio_pad, file_dur, samp_rate, samp_rate_orig
 
 
-def run_model(det, audio, file_dur, samp_rate, detection_thresh, max_num_calls=0):
+def run_model(det, audio, file_dur, samp_rate, detection_thresh, do_time_expansion, max_num_calls=0):
     """This runs the bat call detector.
     """
     # results will be stored here
@@ -92,7 +92,7 @@ def run_model(det, audio, file_dur, samp_rate, detection_thresh, max_num_calls=0
     return det_time_file, det_prob_file
 
 # Plots all figures from figure 1.
-def plot_calls(audio, det_time):
+def plot_calls(audio, samp_rate_orig, det, det_time):
 
     # Store duration of audio in seconds for future plotting
     orig_audio_length1 = len(audio)/float(samp_rate_orig)
@@ -100,7 +100,7 @@ def plot_calls(audio, det_time):
     # Create spectrograms raw and processed from full audio 
     # Previous calls only input chunks of the audio
     # For future, try concatenating each chunk's spectrogram to plot off of the main code
-    raw_spec, proc_spec = det.create_spec(audio, samp_rate)
+    raw_spec, proc_spec = det.create_spec(audio, int(samp_rate_orig/10.0))
 
     # Initialize subplots 4 rows and 1 column
     fig, axes = plt.subplots(4, 1, figsize=(10, 12))
@@ -120,7 +120,7 @@ def plot_calls(audio, det_time):
     ax = axes[1]
     raw_time_step = orig_audio_length1/float(raw_spec.shape[1])
     raw_times = np.arange(0, orig_audio_length1, raw_time_step)
-    raw_freqs = np.arange(det.min_freq, det.max_freq, 1)
+    raw_freqs = np.arange(int(det.min_freq/2), int(det.max_freq/2), 0.5)
     ax.pcolormesh(raw_times, raw_freqs, np.flipud(raw_spec)) # Spectrogram is flipped in spectrogram.py so we flip again
     ax.set_ylabel("Frequency (kHz)")
     ax.set_xlabel("Time (s)")
@@ -131,7 +131,7 @@ def plot_calls(audio, det_time):
     ax = axes[2]
     proc_time_step = orig_audio_length1/float(proc_spec.shape[1])
     proc_times = np.arange(0, orig_audio_length1, proc_time_step)
-    proc_freqs = np.arange(det.min_freq, det.max_freq, 2)
+    proc_freqs = np.arange(int(det.min_freq/2), int(det.max_freq/2), 1)
     ax.pcolormesh(proc_times, proc_freqs, np.flipud(proc_spec)) # Spectrogram is flipped in spectrogram.py so we flip again
     ax.set_ylabel("Frequency (kHz)")
     ax.set_xlabel("Time (s)")
@@ -169,8 +169,8 @@ if __name__ == "__main__":
     save_summary_result = True     # if True will create a single csv file with all results
 
     # load data
-    data_dir = 'short_ub_calls'                                   # this is the path to your audio files
-    op_ann_dir = 'short_ub_results'                              # this where your results will be saved
+    data_dir = 'ub_calls'                                   # this is the path to your audio files
+    op_ann_dir = 'ub_results'                              # this where your results will be saved
     op_ann_dir_ind = os.path.join(op_ann_dir, 'individual_results')  # this where individual results will be saved
     op_file_name_total = os.path.join(op_ann_dir, 'results.csv')
     if not os.path.isdir(op_ann_dir):
@@ -209,7 +209,7 @@ if __name__ == "__main__":
         # run detector
         tic = time.time()
         det_time, det_prob  = run_model(det, audio, file_dur, samp_rate,
-                                        detection_thresh)
+                                        detection_thresh, do_time_expansion)
         toc = time.time()
 
         print('  detection time', round(toc-tic, 3), '(secs)')
@@ -217,7 +217,7 @@ if __name__ == "__main__":
         print('  ' + str(num_calls) + ' calls found')
 
         # Calling our method here to plot a figure for each file in the directory
-        plot_calls(audio, det_time)
+        plot_calls(audio, samp_rate_orig, det, det_time)
 
         # save results
         if save_individual_results:
