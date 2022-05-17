@@ -92,7 +92,7 @@ def run_model(det, audio, file_dur, samp_rate, detection_thresh, do_time_expansi
     return det_time_file, det_prob_file
 
 # Plots all figures from figure 1.
-def plot_calls(audio, samp_rate_orig, det, det_time):
+def plot_calls(audio, samp_rate_orig, det, det_time, det_threshold):
 
     # Store duration of audio in seconds for future plotting
     orig_audio_length1 = len(audio)/float(samp_rate_orig)
@@ -103,8 +103,8 @@ def plot_calls(audio, samp_rate_orig, det, det_time):
     raw_spec, proc_spec = det.create_spec(audio, int(samp_rate_orig/10.0))
 
     # Initialize subplots 4 rows and 1 column
-    fig, axes = plt.subplots(4, 1, figsize=(10, 12))
-    
+    fig, axes = plt.subplots(3, 1, figsize=(10, 8))
+    plt.rcParams['font.size'] = '12'
     # Plot the raw audio first with samples from 0 to duration of audio 
     # according to the original sample rate (before time expansion)
     ax = axes[0]
@@ -121,29 +121,29 @@ def plot_calls(audio, samp_rate_orig, det, det_time):
     raw_time_step = orig_audio_length1/float(raw_spec.shape[1])
     raw_times = np.arange(0, orig_audio_length1, raw_time_step)
     raw_freqs = np.arange(int(det.min_freq/2), int(det.max_freq/2), 0.5)
-    ax.pcolormesh(raw_times, raw_freqs, np.flipud(raw_spec)) # Spectrogram is flipped in spectrogram.py so we flip again
+    pc = ax.pcolormesh(raw_times, raw_freqs, np.flipud(raw_spec), cmap='viridis') # Spectrogram is flipped in spectrogram.py so we flip again
     ax.set_ylabel("Frequency (kHz)")
     ax.set_xlabel("Time (s)")
     ax.set(title="Raw Spectrogram")
 
     # Plot the processed spectrogram generated from the full audio
     # Get time values from 0 to duration of audio with samples according to spectrogram frames
-    ax = axes[2]
-    proc_time_step = orig_audio_length1/float(proc_spec.shape[1])
-    proc_times = np.arange(0, orig_audio_length1, proc_time_step)
-    proc_freqs = np.arange(int(det.min_freq/2), int(det.max_freq/2), 1)
-    ax.pcolormesh(proc_times, proc_freqs, np.flipud(proc_spec)) # Spectrogram is flipped in spectrogram.py so we flip again
-    ax.set_ylabel("Frequency (kHz)")
-    ax.set_xlabel("Time (s)")
-    ax.set(title="Noise-Reduced Spectrogram")
+    #ax = axes[2]
+    #proc_time_step = orig_audio_length1/float(proc_spec.shape[1])
+    #proc_times = np.arange(0, orig_audio_length1, proc_time_step)
+    #proc_freqs = np.arange(int(det.min_freq/2), int(det.max_freq/2), 1)
+    #ax.pcolormesh(proc_times, proc_freqs, np.flipud(proc_spec)) # Spectrogram is flipped in spectrogram.py so we flip again
+    #ax.set_ylabel("Frequency (kHz)")
+    #ax.set_xlabel("Time (s)")
+    #ax.set(title="Noise-Reduced Spectrogram")
 
     # Plot the raw spectrogram generated from the full audio
     # Get time values from 0 to duration of audio with samples according to spectrogram frames
-    ax = axes[3]
-    ax.pcolormesh(raw_times, raw_freqs, np.flipud(raw_spec))
+    ax = axes[2]
+    pc = ax.pcolormesh(raw_times, raw_freqs, np.flipud(raw_spec))
     ax.set_ylabel("Frequency (kHz)")
     ax.set_xlabel("Time (s)")
-    ax.set(title="Detections Overlayed")
+    ax.set(title="Detections Overlayed with Threshold: " + str(det_threshold*100) + "%")
     # Draw a boundary over each x-coordinate calculated by CNN model. 
     # Use 2 times the fft window length as the width of our boundary.
     # x-coordinate is approximately at the start of each call

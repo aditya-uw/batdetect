@@ -1,1 +1,4 @@
 Filename,Label,LabelTimeStamp,Spec_NStep,Spec_NWin,Spec_x1,Spec_y1,Spec_x2,Spec_y2,LabelStartTime_Seconds,LabelEndTime_Seconds,LabelArea_DataPoints,DetectorConfidence
+/20210921_03000045test4.wav,bat,2022-05-10T23:49:06.686403,0.001,0.003,192.941,0,193.941,375.0,0.193,0.194,,0.686
+/20210921_03000045test4.wav,bat,2022-05-10T23:49:06.686403,0.001,0.003,532.294,0,533.294,375.0,0.532,0.533,,0.86
+/20210921_03000045test4.wav,bat,2022-05-10T23:49:06.686403,0.001,0.003,876.353,0,877.353,375.0,0.876,0.877,,0.821
